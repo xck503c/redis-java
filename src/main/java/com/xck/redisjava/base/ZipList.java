@@ -2,8 +2,6 @@ package com.xck.redisjava.base;
 
 import com.xck.redisjava.util.Utils;
 
-import java.nio.charset.Charset;
-
 /**
  * 对应redis中的压缩列表
  */
@@ -87,18 +85,17 @@ public class ZipList {
      * @param item 待插入元素
      * @return
      */
-    public void ziplistInsert(String item) {
+    public void ziplistInsert(byte[] item) {
 
         //tail节点
         ZlEntry tailEntry = entryParse(zl, zlTail);
 
         ZlEntry newEntry = null;
-        Number number = Utils.str2Number(item);
+        Number number = Utils.charBytes2Number(item);
         if (number != null) { //可以转换为数字
             newEntry = value2Entry(number, tailEntry);
         } else {
-            byte[] b = item.getBytes(Charset.forName("utf-8"));
-            newEntry = value2Entry(b, tailEntry);
+            newEntry = value2Entry(item, tailEntry);
         }
 
         int reqTotalLen = zl.length + newEntry.len;
@@ -133,12 +130,21 @@ public class ZipList {
             return;
         }
 
+        /**
+         *         待删除            待删除的下一个
+         *           |                    |
+         *           v                    v
+         * |        del        |        delNext     |  ..  |
+         * ^                              ^         ^
+         * |                              |         |
+         * index-delNet.len-del.len     index   zl.length
+         */
         int index = 0;
         ZlEntry del = null, delNext = null;
         for (int j = 0; j < zlEntrySize; j++) {
             delNext = entryParse(zl, index);
             index += delNext.len;
-            if (j == i + 1) {
+            if (j == i + 1) { //到了下一个就停止
                 break;
             }
             del = delNext;
@@ -366,7 +372,7 @@ public class ZipList {
     }
 
     /**
-     * 检查entry的长度，若有需要，进行更新
+     * 从某个位置开始检查entry的长度，若有需要，进行更新
      *
      * @param newZl        新的压缩列表
      * @param del          删除节点信息
@@ -403,7 +409,7 @@ public class ZipList {
 
             //刷新字节数组中的信息:写入长度
             writePrev(nextNext, newNextIndex, tmpZl);
-            //将newZl长度后面的的信息copy到tmp列表里面
+            //将newZl长度后面的信息copy到tmp列表里面
             System.arraycopy(newZl, newNextIndex + oldNextPrevLenSize
                     , tmpZl, newNextIndex + nextNext.prevLenSize
                     , newZl.length - newNextIndex - oldNextPrevLenSize);

@@ -1,5 +1,7 @@
 package com.xck.redisjava.util;
 
+import java.math.BigInteger;
+
 public class Utils {
 
     public static byte[] long2Bytes(long i) {
@@ -66,19 +68,51 @@ public class Utils {
         return value;
     }
 
-    public static Number str2Number(String str) {
+    /**
+     * 尝试将字节转换为数字，遍历所有字节:
+     * 1. 判断第一个是否是负号
+     * 2. 判断是否是'0'~'9'
+     * 3. 拼接放到jdk自带的BitInteger中
+     * 4. 判断是否溢出，转换为long，若前后不一致则溢出
+     * 5. 判断在哪个数据类型的区间里面，然后转换
+     * <p>
+     * '0' - 48
+     * ...
+     * '9' - 57
+     *
+     * @param b
+     * @return
+     */
+    public static Number charBytes2Number(byte[] b) {
         try {
-            String maxLongStr = Long.MAX_VALUE+"";
-            if (str.length() > maxLongStr.length()) return null;
+            StringBuilder sb = new StringBuilder();
 
-            long v = Long.parseLong(str);
-            if (v <= Byte.MAX_VALUE) {
-                return (byte)v;
-            } else if (v <= Short.MAX_VALUE) {
-                return(short)v;
-            } else if (v <= Integer.MAX_VALUE) {
-                return (int)v;
-            } else if (v <= Long.MAX_VALUE) {
+            int start = 0;
+            if (b[0] == '-') {
+                start = 1;
+                sb.append("-");
+            }
+
+            for (int i = start; i < b.length; i++) {
+                if (b[i] < '0' || b[i] > '9') {
+                    return null;
+                }
+                sb.append(b[i]-48);
+            }
+
+            BigInteger bigInteger = new BigInteger(sb.toString());
+            long v = bigInteger.longValue();
+            if (!sb.toString().equals(v + "")){ //溢出
+                return null;
+            }
+
+            if (v >= Byte.MIN_VALUE && v <= Byte.MAX_VALUE) {
+                return (byte) v;
+            } else if (v >= Short.MIN_VALUE && v <= Short.MAX_VALUE) {
+                return (short) v;
+            } else if (v >= Integer.MIN_VALUE && v <= Integer.MAX_VALUE) {
+                return (int) v;
+            } else if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
                 return v;
             }
         } catch (NumberFormatException e) {
@@ -101,11 +135,11 @@ public class Utils {
 
     public static void number2Bytes(long i, byte[] b) {
         if (b.length == 1) {
-            b[0] = (byte)i;
+            b[0] = (byte) i;
         } else if (b.length == 2) {
-            System.arraycopy(Utils.short2Bytes((short)i), 0, b, 0, 2);
+            System.arraycopy(Utils.short2Bytes((short) i), 0, b, 0, 2);
         } else if (b.length == 4) {
-            System.arraycopy(Utils.int2Bytes((int)i), 0, b, 0, 4);
+            System.arraycopy(Utils.int2Bytes((int) i), 0, b, 0, 4);
         } else {
             System.arraycopy(Utils.long2Bytes(i), 0, b, 0, 8);
         }
