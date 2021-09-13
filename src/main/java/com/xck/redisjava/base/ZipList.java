@@ -3,7 +3,11 @@ package com.xck.redisjava.base;
 import com.xck.redisjava.util.Utils;
 
 /**
- * 对应redis中的压缩列表
+ * 对应redis中的压缩列表，为了方便java实现，对格式定义做了改动
+ *
+ * 提供操作：
+ * 1. 单元素的插入，删除和获取
+ * 2. 长度的获取
  */
 public class ZipList {
 
