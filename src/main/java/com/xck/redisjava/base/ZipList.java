@@ -360,6 +360,7 @@ public class ZipList {
 
     /**
      * 写入节点信息：prev信息
+     *
      * @param newEntry
      * @param writeIndex
      * @param newZl
@@ -418,5 +419,12 @@ public class ZipList {
 
             newNextIndex += nextNext.len;
         }
+    }
+
+    /**
+     * O(1) 复杂度获取列表长度
+     */
+    public int len() {
+        return zlEntrySize;
     }
 }
