@@ -2,6 +2,12 @@ package com.xck.redisjava.util;
 
 import java.math.BigInteger;
 
+/**
+ * 统一工具类，后面会看情况分
+ *
+ * @author xuchengkun
+ * @date 2021/09/12 10:22
+ */
 public class Utils {
 
     public static byte[] long2Bytes(long i) {

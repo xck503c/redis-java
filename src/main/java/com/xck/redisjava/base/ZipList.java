@@ -8,6 +8,9 @@ import com.xck.redisjava.util.Utils;
  * 提供操作：
  * 1. 单元素的插入，删除和获取
  * 2. 长度的获取
+ *
+ * @author xuchengkun
+ * @date 2021/09/12 10:22
  */
 public class ZipList {
 
