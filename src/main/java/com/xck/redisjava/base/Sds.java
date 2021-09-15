@@ -1,5 +1,7 @@
 package com.xck.redisjava.base;
 
+import java.util.Arrays;
+
 /**
  * 简单动态字符串sds
  *
@@ -111,5 +113,14 @@ public class Sds {
         byte[] b = new byte[len];
         System.arraycopy(buf, 0, b, 0, len);
         return b;
+    }
+
+    @Override
+    public String toString() {
+        return "Sds{" +
+                "buf=" + Arrays.toString(buf) +
+                ", free=" + free +
+                ", len=" + len +
+                '}';
     }
 }
