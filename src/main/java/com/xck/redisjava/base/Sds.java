@@ -10,7 +10,7 @@ import java.util.Arrays;
  * @author xuchengkun
  * @date 2021/09/13 11:03
  **/
-public class Sds {
+public class Sds implements Comparable<Sds>{
 
     /**
      * SDS根据表达的长度不同，分为不同的类型
@@ -122,5 +122,36 @@ public class Sds {
                 ", free=" + free +
                 ", len=" + len +
                 '}';
+    }
+
+    @Override
+    public int compareTo(Sds o) {
+        int len = sdsLen() > o.sdsLen() ? o.sdsLen() : sdsLen();
+        byte[] targetBuf = o.getBuf();
+        for (int i = 0; i < len; i++) {
+            if (buf[i] < targetBuf[i]) {
+                return -1;
+            } else if (buf[i] > targetBuf[i]) {
+                return 1;
+            }
+        }
+        if (sdsLen() == o.sdsLen()) {
+            return 0;
+        }
+
+        return sdsLen() > o.sdsLen() ? 1 : -1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sds sds = (Sds) o;
+        return this.compareTo(sds) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(buf);
     }
 }
