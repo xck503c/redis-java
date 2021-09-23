@@ -12,7 +12,7 @@ public class ServerTest {
 
     @Test
     public void loginTest() throws Exception{
-        Server server = new Server(6379);
+        Server server = new Server(6378);
         server.start();
     }
 }
