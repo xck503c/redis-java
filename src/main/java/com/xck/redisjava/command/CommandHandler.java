@@ -146,6 +146,11 @@ public class CommandHandler {
             //server类
             case "flushdb":
                 return ServerCommand.flushdbCommand(args);
+            //连接类
+            case "ping":
+                return ConnectionCommand.pingCommand(args);
+            case "quit":
+                return ConnectionCommand.quitCommand(args);
 
         }
         return RespMsg.returnErrMsg(String.format("unknown Command '%s'", command));
