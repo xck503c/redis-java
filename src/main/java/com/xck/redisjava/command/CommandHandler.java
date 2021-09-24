@@ -88,11 +88,8 @@ public class CommandHandler {
     }
 
     /**
-     * 1. set,get
-     * 2. del,exists
-     * 3. hset,hget,hlen,hmset,hmget
-     * 4. flushdb
-     * @param args
+     * 命令处理
+     * @param args 请求参数
      * @return
      */
     public static ByteBuffer handle(List<Sds> args) {
@@ -109,6 +106,10 @@ public class CommandHandler {
                 return KeyCommand.delCommand(args);
             case "exists":
                 return KeyCommand.existsCommand(args);
+            case "keys":
+                return KeyCommand.keysCommand(args);
+            case "scan":
+                return KeyCommand.scanCommand(args);
             //hash类
             case "hset":
                 return HashCommand.hsetCommand(args);
@@ -120,6 +121,28 @@ public class CommandHandler {
                 return HashCommand.hmsetCommand(args);
             case "hmget":
                 return HashCommand.hmgetCommand(args);
+            case "hscan":
+                return HashCommand.hscanCommand(args);
+            case "hgetall":
+                return HashCommand.hgetallCommand(args);
+            //list类
+            case "llen":
+                return ListCommand.llenCommand(args);
+            case "lpush":
+                return ListCommand.pushCommand(args, true);
+            case "rpush":
+                return ListCommand.pushCommand(args, false);
+            case "lpop":
+                return ListCommand.popCommand(args, true);
+            case "rpop":
+                return ListCommand.popCommand(args, false);
+            //set类
+            case "sadd":
+                return SetCommand.saddCommand(args);
+            case "scard":
+                return SetCommand.scardCommand(args);
+            case "sismember":
+                return SetCommand.sismemberCommand(args);
             //server类
             case "flushdb":
                 return ServerCommand.flushdbCommand(args);

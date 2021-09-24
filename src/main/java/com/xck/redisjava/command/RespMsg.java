@@ -4,6 +4,7 @@ import com.xck.redisjava.base.Sds;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,11 +91,21 @@ public class RespMsg {
     }
 
     /**
+     * 封装数组，返回空数组
+     *
+     * @return
+     */
+    public static ByteBuffer returnEmptyArray() {
+        return ByteBuffer.wrap("*0\r\n".getBytes(Charset.forName("UTF-8")));
+    }
+
+    /**
      * 封装数组，返回指定数量的nil
+     *
      * @param len
      * @return
      */
-    public static ByteBuffer returnEmptyArray(int len){
+    public static ByteBuffer returnNilArray(int len) {
         StringBuilder sb = new StringBuilder("*" + len + "\r\n");
         for (int i = 0; i < len; i++) {
             sb.append("$-1\r\n");
@@ -103,37 +114,46 @@ public class RespMsg {
     }
 
     /**
-     * 返回数组，若数组为空，则全部返回nil
+     * 返回数组，根据数组中的类型，来进行不同的封装
      * @param list
+     * @param isDealNil 是否处理null，若要处理null，则客户端也会收到nil
      * @return
      */
-    public static ByteBuffer returnArray(List<Sds> list){
-        byte[] prefix = ("*" + list.size() + "\r\n").getBytes(Charset.forName("UTF-8"));
+    public static ByteBuffer returnArray(List<Object> list, boolean isDealNil) {
+
+        List<byte[]> respBuf = new ArrayList<>();
         int dataLen = 0;
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i) == null) {
-                dataLen += 5;
-                continue;
+            byte[] tmp = null;
+            Object o = list.get(i);
+
+            if (!isDealNil && o == null) continue; //不处理null
+
+            if (o == null) {
+                tmp = "$-1\r\n".getBytes(Charset.forName("UTF-8"));
+            }else if (o instanceof Sds) {
+                Sds sds = (Sds) o;
+                tmp = returnBlukStr(sds.getBuf()).array();
+            } else if (o instanceof List) {
+                //是否是空数组
+                if (((List)o).isEmpty()) {
+                    tmp = returnEmptyArray().array();
+                }else {
+                    tmp = returnArray((List)o, isDealNil).array();
+                }
+            } else if (o instanceof Integer){
+                tmp = returnNumber((Integer)o).array();
             }
-            dataLen += 5; //$\r\n和\r\n
-            int len = list.get(i).sdsLen();
-            dataLen += (len + "").getBytes(Charset.forName("UTF-8")).length;
-            dataLen += len;
+            dataLen += tmp.length;
+            respBuf.add(tmp);
 
         }
+        byte[] prefix = ("*" + respBuf.size() + "\r\n").getBytes(Charset.forName("UTF-8"));
+
         ByteBuffer resp = ByteBuffer.allocate(prefix.length + dataLen);
         resp.put(prefix);
-        for (int i = 0; i < list.size(); i++) {
-            Sds sds = list.get(i);
-            if (sds == null) { //若为null，则放入-1
-                resp.put("$-1\r\n".getBytes(Charset.forName("UTF-8")));
-                continue;
-            }
-            resp.put("$".getBytes(Charset.forName("UTF-8")));
-            resp.put((sds.sdsLen() + "").getBytes(Charset.forName("UTF-8")));
-            resp.put("\r\n".getBytes(Charset.forName("UTF-8")));
-            resp.put(list.get(i).getBuf());
-            resp.put("\r\n".getBytes(Charset.forName("UTF-8")));
+        for (int i = 0; i < respBuf.size(); i++) {
+            resp.put(respBuf.get(i));
         }
         resp.flip();
         return resp;
